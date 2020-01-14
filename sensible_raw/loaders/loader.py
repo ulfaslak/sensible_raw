@@ -38,22 +38,62 @@ def get_raw_value(index_name, indexed_value):
     return data[0][0]
 
 
-def load_data(data_type, month, config=None, as_dataframe=False):
+def load_data(data_type, month, config=None, as_dataframe=True):
+    """Main function for loading data.
+    
+    Input
+    -----
+        data_type : str
+            Shuold be one of the following:
+                    'bluetooth',
+                    'calllog',
+                    'cell',
+                    'context',
+                    'facebook_friends',
+                    'grades',
+                    'indices',
+                    'local',
+                    'location',
+                    'location_raw',
+                    'questionnaires',
+                    'screen',
+                    'sms',
+                    'stop_locations',
+                    'transport_minute',
+                    'transport_segment',
+                    'user_metadata',
+                    'vectors',
+                    'weather'
+        
+        month : str
+            Month of year. Example value: "january_2014". Typically, you want to query months between
+            September 2013 and January 2016. Refer to https://ulfaslak.com/files/sensible_dtu_data.png
+            for overview of data volume for each month.
+        
+        config : bool/None-type
+            Whether to provide a config file or not.
+            
+        as_dataframe : bool
+            Whether the return the data as a `pandas.DataFrame` object.
+    """
     if not config:
         config = load_config()
-    columns, data = load_from_db(data_type,
-                                 month,
-                                 config["data_types"][data_type]["field_names"],
-                                 config["data_types"][data_type]["field_types"],
-                                 config["db_host"])
+
+    columns, data = load_from_db(
+        data_type,
+        month,
+        config["data_types"][data_type]["field_names"],
+        config["data_types"][data_type]["field_types"],
+        config["db_host"]
+    )
 
     if not as_dataframe:
         return columns, data
-
-    dict = {}
-    for column, array in zip(columns, data):
-        dict[column] = array
-    return pandas.DataFrame(dict)
+    else:
+        d = {}
+        for column, array in zip(columns, data):
+            d[column] = array
+        return pandas.DataFrame(d)
 
 
 def load_from_db(db, collection, field_names, field_types, db_host, query_spec={}):
